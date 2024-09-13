@@ -61,7 +61,31 @@ persistent_peers = ""
 
 > **You have an already optimized ``config.toml`` file is this repository at [config.toml](https://github.com/dub1t0/shido-validator/blob/main/config.toml)**
 
+### Logs
 
+In order to make your shido node more effective regarding IOPS, you have change your logs settings by
+modifying your `/path_to_your_shidod_folder/config/config.toml` file as following:
+
+```
+
+#from
+
+log_level = info
+
+#to
+
+log_level = "warn"
+
+#from
+
+log_format = "plain"
+
+#to
+
+log_format = "json"
+
+```
+> Please notice that after these changes the output of a ``shidod start`` may produce a "black screen" as there will be "text" only if there are warnings.
 
 ### System tunning
 ```
