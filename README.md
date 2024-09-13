@@ -60,6 +60,42 @@ persistent_peers = ""
 
 
 
+### System tunning
+```
+
+apt-get -y install cpufrequtils
+sudo su
+
+cat > /etc/default/cpufrequtils << EOF
+ENABLE="true"
+GOVERNOR="performance"
+EOF
+
+systemctl restart cpufrequtils
+
+
+
+
+cat >> /etc/sysctl.conf << EOF
+net.core.rmem_max=16777216
+net.core.wmem_max=16777216
+net.ipv4.tcp_max_syn_backlog=8192
+net.core.netdev_max_backlog=65536
+net.ipv4.tcp_slow_start_after_idle=0
+net.ipv4.tcp_mtu_probing=1
+net.ipv4.tcp_sack=0
+net.ipv4.tcp_dsack=0
+net.ipv4.tcp_fack=0
+net.ipv4.tcp_congestion_control=bbr
+
+EOF
+sysctl -p
+
+
+```
+> Restart your node
+
+
 
 
 
