@@ -59,7 +59,7 @@ persistent_peers = ""
 
 > You have to restart your node to see the effects.
 
-> ** You have an already optimized ``config.toml`` file is this repository at [config.toml](https://github.com/dub1t0/shido-validator/blob/main/config.toml)**
+> **You have an already optimized ``config.toml`` file is this repository at [config.toml](https://github.com/dub1t0/shido-validator/blob/main/config.toml)**
 
 
 
