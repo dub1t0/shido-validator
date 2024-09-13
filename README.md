@@ -69,23 +69,56 @@ modifying your `/path_to_your_shidod_folder/config/config.toml` file as followin
 ```
 
 #from
-
 log_level = info
 
 #to
-
 log_level = "warn"
 
 #from
-
 log_format = "plain"
 
 #to
-
 log_format = "json"
 
 ```
 > Please notice that after these changes the output of a ``shidod start`` may produce a "black screen" as there will be "text" only if there are warnings.
+> Please restart your node to make this effective
+
+### Transactions
+
+In order to make your shido node more effective regarding transactions, you have change your logs settings by
+modifying your `/path_to_your_shidod_folder/config/config.toml` file as following:
+
+```
+
+#from
+broadcast = true
+
+#to (disable mempool broadcasting on validator -- less traffic is more cycles)
+broadcast = false
+
+#from
+keep-invalid-txs-in-cache = false
+
+#to (don't retry previously failed transactions)
+keep-invalid-txs-in-cache = true
+
+#from
+max_num_inbound_peers = 240
+
+#to
+max_num_inbound_peers = 80
+
+#from
+max_num_outbound_peers = 30
+
+#to
+max_num_outbound_peers = 60
+
+```
+> Please restart your node to make this effective.
+
+
 
 ### System tunning
 ```
