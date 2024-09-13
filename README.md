@@ -82,6 +82,7 @@ log_format = "json"
 
 ```
 > Please notice that after these changes the output of a ``shidod start`` may produce a "black screen" as there will be "text" only if there are warnings.
+
 > Please restart your node to make this effective
 
 ### Transactions
