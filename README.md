@@ -55,6 +55,8 @@ seeds = "7ed728831ff441d18a8556b64afcaebc31b68c74@3.76.57.158:26656[...]"
 persistent_peers = ""
 
 ```
+> Here you should update the list with the one gathered from the "Peers" command.
+> You have to restart your node to see the effects.
 
 
 
