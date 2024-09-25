@@ -144,7 +144,35 @@ peer_gossip_sleep_duration = "10ms"
 
 ### System tunning
 ```
+## INCREASE MAX OPENED FILES
+# Check the current limit
+> ulimit -n
 
+#edit /etc/sysctl.conf and append
+> nano /etc/sysctl.conf
+> # Max opened files
+> fs.file-max = 65535
+
+#edit /etc/security/limits.conf and append
+> nano /etc/security/limits.conf
+> # Max opened files
+* soft     nproc          65535    
+* hard     nproc          65535   
+* soft     nofile         65535   
+* hard     nofile         65535
+root soft     nproc          65535    
+root hard     nproc          65535   
+root soft     nofile         65535   
+root hard     nofile         65535
+
+#edit /etc/pam.d/common-session and append
+> session required pam_limits.so
+
+# logoff your session and login again to apply
+# Check the current limit
+> ulimit -n
+
+## CPU
 apt-get -y install cpufrequtils
 sudo su
 
@@ -157,6 +185,7 @@ systemctl restart cpufrequtils
 
 
 
+## NETWORK
 
 cat >> /etc/sysctl.conf << EOF
 net.core.rmem_max=16777216
