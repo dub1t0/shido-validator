@@ -116,6 +116,12 @@ max_num_outbound_s = 30
 #to
 max_num_outbound_s = 60
 
+#from
+timeout_commit = "3s"
+
+#to
+timeout_commit = "1s"
+
 ```
 > Please restart your node to make this effective.
 
