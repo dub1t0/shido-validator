@@ -144,7 +144,7 @@ peer_gossip_sleep_duration = "10ms"
 
 ### System tunning
 ```
-## INCREASE MAX OPENED FILES
+**INCREASE MAX OPENED FILES**
 # Check the current limit
 > ulimit -n
 
@@ -172,7 +172,7 @@ root hard     nofile         65535
 # Check the current limit
 > ulimit -n
 
-## CPU
+**CPU**
 apt-get -y install cpufrequtils
 sudo su
 
@@ -185,7 +185,7 @@ systemctl restart cpufrequtils
 
 
 
-## NETWORK
+**NETWORK**
 
 cat >> /etc/sysctl.conf << EOF
 net.core.rmem_max=16777216
