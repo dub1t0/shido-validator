@@ -147,7 +147,7 @@ peer_gossip_sleep_duration = "10ms"
 **INCREASE MAX OPENED FILES**
 ```
 # Check the current limit
-> ulimit -n
+ulimit -n
 
 #edit /etc/sysctl.conf
 nano /etc/sysctl.conf
@@ -174,7 +174,7 @@ session required pam_limits.so
 
 # logoff your session and login again to apply
 # Check the current limit
-> ulimit -n
+ulimit -n
 ```
 **CPU**
 ```
