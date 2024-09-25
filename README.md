@@ -120,19 +120,20 @@ max_num_outbound_s = 60
 > Please restart your node to make this effective.
 
 ### Remaining
-
+In order to make your shido node more effective regarding remaining , you have change your logs settings by modifying your /path_to_your_shidod_folder/config/config.toml file as following:
+```
 #from
 flush_throttle_timeout = "100ms"
 
 #to
 flush_throttle_timeout = "10ms"
 
-#from 
+#from
 peer_gossip_sleep_duration = "100ms"
 
-#to 
+#to
 peer_gossip_sleep_duration = "10ms"
-
+```
 
 ### System tunning
 ```
