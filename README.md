@@ -55,7 +55,8 @@ seeds = "7ed728831ff441d18a8556b64afcaebc31b68c74@3.76.57.158:26656[...]"
 persistent_peers = ""
 
 ```
-> Here you should update the list with the one gathered from the "s" command.
+> Here you should update the list with the one gathered from the "peers" command.
+> Or copy latests seeds from here [Seeds](https://github.com/dub1t0/shido-validator/blob/main/seeds.txt)
 
 > You have to restart your node to see the effects.
 
