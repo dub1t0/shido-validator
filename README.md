@@ -149,14 +149,16 @@ peer_gossip_sleep_duration = "10ms"
 # Check the current limit
 > ulimit -n
 
-#edit /etc/sysctl.conf and append
-> nano /etc/sysctl.conf
-> # Max opened files
-> fs.file-max = 65535
+#edit /etc/sysctl.conf
+nano /etc/sysctl.conf
+# Append
+# Max opened files
+fs.file-max = 65535
 
-#edit /etc/security/limits.conf and append
-> nano /etc/security/limits.conf
-> # Max opened files
+#edit /etc/security/limits.conf
+nano /etc/security/limits.conf
+# Append
+# Max opened files
 * soft     nproc          65535    
 * hard     nproc          65535   
 * soft     nofile         65535   
@@ -166,8 +168,9 @@ root hard     nproc          65535
 root soft     nofile         65535   
 root hard     nofile         65535
 
-#edit /etc/pam.d/common-session and append
-> session required pam_limits.so
+#edit /etc/pam.d/common-session
+# Append
+session required pam_limits.so
 
 # logoff your session and login again to apply
 # Check the current limit
@@ -186,9 +189,9 @@ EOF
 systemctl restart cpufrequtils
 ```
 
-```
-**NETWORK**
 
+**NETWORK**
+```
 cat >> /etc/sysctl.conf << EOF
 net.core.rmem_max=16777216
 net.core.wmem_max=16777216
