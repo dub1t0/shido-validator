@@ -143,8 +143,9 @@ peer_gossip_sleep_duration = "10ms"
 ```
 
 ### System tunning
-```
+
 **INCREASE MAX OPENED FILES**
+```
 # Check the current limit
 > ulimit -n
 
@@ -171,8 +172,9 @@ root hard     nofile         65535
 # logoff your session and login again to apply
 # Check the current limit
 > ulimit -n
-
+```
 **CPU**
+```
 apt-get -y install cpufrequtils
 sudo su
 
@@ -182,9 +184,9 @@ GOVERNOR="performance"
 EOF
 
 systemctl restart cpufrequtils
+```
 
-
-
+```
 **NETWORK**
 
 cat >> /etc/sysctl.conf << EOF
@@ -201,7 +203,6 @@ net.ipv4.tcp_congestion_control=bbr
 
 EOF
 sysctl -p
-
 
 ```
 > Restart your node
