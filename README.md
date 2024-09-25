@@ -55,7 +55,7 @@ seeds = "7ed728831ff441d18a8556b64afcaebc31b68c74@3.76.57.158:26656[...]"
 persistent_peers = ""
 
 ```
-> Here you should update the list with the one gathered from the "Peers" command.
+> Here you should update the list with the one gathered from the "s" command.
 
 > You have to restart your node to see the effects.
 
@@ -105,20 +105,33 @@ keep-invalid-txs-in-cache = false
 keep-invalid-txs-in-cache = true
 
 #from
-max_num_inbound_peers = 240
+max_num_inbound_s = 240
 
 #to
-max_num_inbound_peers = 80
+max_num_inbound_s = 80
 
 #from
-max_num_outbound_peers = 30
+max_num_outbound_s = 30
 
 #to
-max_num_outbound_peers = 60
+max_num_outbound_s = 60
 
 ```
 > Please restart your node to make this effective.
 
+### Remaining
+
+#from
+flush_throttle_timeout = "100ms"
+
+#to
+flush_throttle_timeout = "10ms"
+
+#from 
+peer_gossip_sleep_duration = "100ms"
+
+#to 
+peer_gossip_sleep_duration = "10ms"
 
 
 ### System tunning
