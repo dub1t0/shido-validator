@@ -49,8 +49,8 @@ $validators_map = [
     "Sherlock Holmes" => "shidovalcons1zwg0zjaqch52aujnh5cw4pk74y3f8qm7dc655a"
 ];
 
-// Function to display validators' uptime, name, and missed blocks
-function display_uptime($api_url, $validators_map) {
+// Function to display validators' uptime, name, and missed blocks in an ordered list sorted by uptime
+function display_uptime_sorted($api_url, $validators_map) {
     // Fetch signing info for all validators (for missed blocks)
     $signing_info = get_all_signing_info($api_url);
 
@@ -65,11 +65,10 @@ function display_uptime($api_url, $validators_map) {
         $signing_info_map[$info['address']] = $info;
     }
 
-    // Display table header
-    echo "<table border='1' cellpadding='5' cellspacing='0'>";
-    echo "<tr><th>Validator</th><th>Consensus Address</th><th>Missed Blocks</th><th>Uptime (%)</th></tr>";
+    // Create an array to hold validator data
+    $validator_data = [];
 
-    // Iterate through the provided validators map (address => name)
+    // Iterate through the provided validators map (name => address)
     foreach ($validators_map as $validator_name => $consensus_address) {
         // Check if we have signing info for this validator's consensus address
         if (isset($signing_info_map[$consensus_address])) {
@@ -88,12 +87,32 @@ function display_uptime($api_url, $validators_map) {
             $missed_blocks_counter = 'No signing info available';
         }
 
-        // Display each row
+        // Add the data to the array
+        $validator_data[] = [
+            'name' => $validator_name,
+            'consensus_address' => $consensus_address,
+            'missed_blocks' => $missed_blocks_counter,
+            'uptime' => $uptime_percentage
+        ];
+    }
+
+    // Sort the array by uptime in descending order
+    usort($validator_data, function($a, $b) {
+        return $b['uptime'] <=> $a['uptime'];
+    });
+
+    // Display the sorted data in an ordered list (1, 2, 3...)
+    echo "<table border='1' cellpadding='5' cellspacing='0'>";
+    echo "<tr><th>#</th><th>Validator</th><th>Consensus Address</th><th>Missed Blocks</th><th>Uptime (%)</th></tr>";
+
+    // Iterate through the sorted data and display it
+    foreach ($validator_data as $index => $data) {
         echo "<tr>";
-        echo "<td>$validator_name</td>";
-        echo "<td>$consensus_address</td>";
-        echo "<td>$missed_blocks_counter</td>";
-        echo "<td>" . number_format($uptime_percentage, 2) . "</td>";
+        echo "<td>" . ($index + 1) . "</td>";  // Display the rank (1, 2, 3...)
+        echo "<td>" . $data['name'] . "</td>";
+        echo "<td>" . $data['consensus_address'] . "</td>";
+        echo "<td>" . $data['missed_blocks'] . "</td>";
+        echo "<td>" . number_format($data['uptime'], 2) . "</td>";
         echo "</tr>";
     }
 
@@ -101,5 +120,5 @@ function display_uptime($api_url, $validators_map) {
 }
 
 // Run the script with the predefined validator map
-display_uptime($api_url, $validators_map);
+display_uptime_sorted($api_url, $validators_map);
 ?>
