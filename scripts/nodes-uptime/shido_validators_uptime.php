@@ -2,6 +2,15 @@
 // API URL of the Shido blockchain node
 $api_url = "https://api-maverick.mavnode.io";
 
+// Function to fetch the current block height using the correct structure
+function get_current_block_height($api_url) {
+    $endpoint = "/cosmos/base/tendermint/v1beta1/blocks/latest";
+    $response = send_request($api_url . $endpoint);
+
+    // Extract the block height from the response
+    return isset($response['block']['header']['height']) ? (int) $response['block']['header']['height'] : null;
+}
+
 // Function to fetch the signing info (missed blocks data) for all validators
 function get_all_signing_info($api_url) {
     $endpoint = "/cosmos/slashing/v1beta1/signing_infos";
@@ -21,18 +30,16 @@ function send_request($url) {
     return json_decode($response, true);
 }
 
-// Function to calculate uptime using start_height, index_offset, and missed_blocks_counter
-function calculate_uptime($start_height, $index_offset, $missed_blocks_counter) {
-    // Calculate the total blocks
-    $total_blocks = $index_offset - $start_height;
+// Function to calculate uptime based on missed blocks in the last 100,000 blocks
+function calculate_uptime($index_offset, $missed_blocks_counter, $reference_block_height, $current_block_height) {
+    // Calculate total blocks in the last 100,000 blocks
+    $total_blocks_in_window = $current_block_height - $reference_block_height;
 
-    // Avoid division by zero
-    if ($total_blocks <= 0) {
-        return 0;
-    }
+    // Adjust missed blocks only within the last 100,000 blocks
+    $missed_blocks_in_window = min($missed_blocks_counter, $total_blocks_in_window);
 
-    // Calculate the uptime
-    $uptime = (($total_blocks - $missed_blocks_counter) / $total_blocks) * 100;
+    // Calculate uptime
+    $uptime = (($total_blocks_in_window - $missed_blocks_in_window) / $total_blocks_in_window) * 100;
 
     // Ensure uptime does not exceed 100%
     return min($uptime, 100);
@@ -63,6 +70,16 @@ $validators_map = [
 
 // Function to display validators' uptime, name, and missed blocks in an ordered list sorted by uptime
 function display_uptime_sorted($api_url, $validators_map) {
+    // Fetch current block height
+    $current_block_height = get_current_block_height($api_url);
+    if ($current_block_height === null) {
+        echo "Error: Unable to fetch the current block height.\n";
+        return;
+    }
+
+    // Set reference block height to current block height - 100,000
+    $reference_block_height = $current_block_height - 100000;
+
     // Fetch signing info for all validators (for missed blocks)
     $signing_info = get_all_signing_info($api_url);
 
@@ -87,12 +104,11 @@ function display_uptime_sorted($api_url, $validators_map) {
             $info = $signing_info_map[$consensus_address];
 
             // Extract the necessary data from signing info
-            $start_height = $info['start_height'];
             $index_offset = $info['index_offset'];
             $missed_blocks_counter = $info['missed_blocks_counter'];
 
-            // Calculate uptime using the new method
-            $uptime_percentage = calculate_uptime($start_height, $index_offset, $missed_blocks_counter);
+            // Calculate uptime using the reference block height (current block - 100,000)
+            $uptime_percentage = calculate_uptime($index_offset, $missed_blocks_counter, $reference_block_height, $current_block_height);
         } else {
             // If no match was found, set missed blocks and uptime to N/A
             $uptime_percentage = 0;
