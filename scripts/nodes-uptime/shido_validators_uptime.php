@@ -38,15 +38,27 @@ function calculate_uptime($start_height, $index_offset, $missed_blocks_counter) 
     return min($uptime, 100);
 }
 
-// Define a map of validator names to their known consensus (signer) addresses
+// Updated map of validator names to their known consensus (signer) addresses
 $validators_map = [
-    "💩💩💩💩" => "shidovalcons1qxjmnfjfq3q3yyxn6tdz7vkw7xj0k2pjmpte72",
-    "ChainTools" => "shidovalcons1qsy4hmxqs38eapk00styvdt5qtz3xv3j3d949q",
-    "Olim 🥷 VIP Services RESTAKE" => "shidovalcons1prcrqn2kwlh77s0ktunua82qe77dv82slc74he",
-    "Carnival Consensus 🎪🎪🎪" => "shidovalcons1perda8fa3ce3xwg2p6zgl7a0akfy2ln56xn648",
-    "🚀 WHEN MOON 🌕 WHEN LAMBO 🔥 RESTAKE ✅" => "shidovalcons1pl5ax5thhns3ktegyc4jgsjyrgjxwrmmcp882v",
-    "SHIDO4LIFE 🥋🤺👊🏼 | ✅ REStake" => "shidovalcons1zxk4rk7a05ryukmrn6y6l0qgzuw40kv58c2wtx",
-    "Sherlock Holmes" => "shidovalcons1zwg0zjaqch52aujnh5cw4pk74y3f8qm7dc655a"
+    "Superbit123 & DAOverse | REStake~" => "shidovalcons194tpuw3ncmtag4y0k2548hn3at37u3nkq8qljj",
+    "Shido Six" => "shidovalcons1ug9ju8045plxlxt6c2jx5jwjk9myyl0dplv3zx",
+    "Maverick | MavNode - REStake" => "shidovalcons1uhdt2plkwn09x6n6zjgsr84agmkgxmvq2jdkdn",
+    "256x25 /reStake" => "shidovalcons1z6qd7g3u4capzj8qal8d0pf4d0p0kar52cs9t0",
+    "ShidoObserver || REStake" => "shidovalcons1v7kk5mz095474l3m9vcnjvfcq2sn6h5qdhpc3g",
+    "MetaDefi || RESTAKE" => "shidovalcons1khdy3qgj5puh8tns8txf7rpxf0lyxghegxk2fc",
+    "KENSEI ⚔️" => "shidovalcons14zx0cxlmw9jkc36frv2aq4ch6knt0uneavqx58",
+    "NeoNode" => "shidovalcons1ntn0gmetdzpny2eycqx556xhz2aht29pdx4f6l",
+    "Nuke Node | RESTAKE" => "shidovalcons1prcrqn2kwlh77s0ktunua82qe77dv82slc74he",
+    "Fox Node🦊 | RESTAKE" => "shidovalcons1khzdyvqdg6c6e66g7upkr3f7jk6fvy75qdeajw",
+    "FrankLinvesting📈 | RESTAKE☆" => "shidovalcons1xdjmmzc6krsdpzqu4k77vx87tff0qf2htn4lte",
+    "Shido Seven" => "shidovalcons1mmv883tkjew7ygffgv6jf00x28mzpxp6csydx5",
+    "🚀 WHEN MOON 🌕 WHEN LAMBO 🔥 RESTAKE ✅" => "shidovalcons13gup7dwmm62tc57v6qyr70k8pykly2p9r723ek",
+    "Olim 🥷 VIP Services RESTAKE" => "shidovalcons1czjpws0ec2ehvzwg3g52ss4d6s07p65vzn27n0",
+    "🔥DefiMike🔥Restake🔥" => "shidovalcons1e5z8sxyx0nvuprl5d63cayun7z05frwqxfua0k",
+    "Neev Labs" => "shidovalcons1qxjmnfjfq3q3yyxn6tdz7vkw7xj0k2pjmpte72",
+    "🇳🇱ShidoDutch🇳🇱 |REStake" => "shidovalcons1jl70udxd5872m8ux0xvv7uaf7zzypf63f42rvf",
+    "ShidoGuard" => "shidovalcons1zxk4rk7a05ryukmrn6y6l0qgzuw40kv58c2wtx",
+    "🇫🇷 ShidoFrance One 🇫🇷" => "shidovalcons1xfv2anmpj7dlh06cz0rg9jx2nswn0v5a24rprm"
 ];
 
 // Function to display validators' uptime, name, and missed blocks in an ordered list sorted by uptime
@@ -119,6 +131,14 @@ function display_uptime_sorted($api_url, $validators_map) {
     echo "</table>";
 }
 
-// Run the script with the predefined validator map
-display_uptime_sorted($api_url, $validators_map);
+// Handle page refresh with a button
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // When the page is refreshed via the button click
+    display_uptime_sorted($api_url, $validators_map);
+}
+
+// Add a refresh button to reload the page and gather updated uptime
+echo '<form method="POST" action="">';
+echo '<button type="submit">Refresh Uptime</button>';
+echo '</form>';
 ?>
