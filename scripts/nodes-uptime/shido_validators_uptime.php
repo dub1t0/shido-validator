@@ -1,17 +1,9 @@
 <?php
 // API URL of the Shido blockchain node
 $api_url = "https://api-maverick.mavnode.io";
-$reference_blocks = 100000;  // Total reference block count for uptime calculation
 
-// Function to fetch the list of validators
-function get_validators($api_url) {
-    $endpoint = "/cosmos/staking/v1beta1/validators";
-    $response = send_request($api_url . $endpoint);
-    return isset($response['validators']) ? $response['validators'] : [];
-}
-
-// Function to fetch the signing info (missed blocks data)
-function get_signing_info($api_url) {
+// Function to fetch the signing info (missed blocks data) for all validators
+function get_all_signing_info($api_url) {
     $endpoint = "/cosmos/slashing/v1beta1/signing_infos";
     $response = send_request($api_url . $endpoint);
     return isset($response['info']) ? $response['info'] : [];
@@ -29,53 +21,78 @@ function send_request($url) {
     return json_decode($response, true);
 }
 
-// Function to calculate uptime based on missed blocks
-function calculate_uptime($missed_blocks, $reference_blocks) {
-    return max(0, 100 * (1 - ($missed_blocks / $reference_blocks)));
+// Function to calculate uptime using start_height, index_offset, and missed_blocks_counter
+function calculate_uptime($start_height, $index_offset, $missed_blocks_counter) {
+    // Calculate the total blocks
+    $total_blocks = $index_offset - $start_height;
+
+    // Avoid division by zero
+    if ($total_blocks <= 0) {
+        return 0;
+    }
+
+    // Calculate the uptime
+    $uptime = (($total_blocks - $missed_blocks_counter) / $total_blocks) * 100;
+
+    // Ensure uptime does not exceed 100%
+    return min($uptime, 100);
 }
 
-// Function to display validators' uptime
-function display_uptime($api_url, $reference_blocks) {
-    // Fetch validators and signing info
-    $validators = get_validators($api_url);
-    $signing_info = get_signing_info($api_url);
+// Define a map of validator names to their known consensus (signer) addresses
+$validators_map = [
+    "💩💩💩💩" => "shidovalcons1qxjmnfjfq3q3yyxn6tdz7vkw7xj0k2pjmpte72",
+    "ChainTools" => "shidovalcons1qsy4hmxqs38eapk00styvdt5qtz3xv3j3d949q",
+    "Olim 🥷 VIP Services RESTAKE" => "shidovalcons1prcrqn2kwlh77s0ktunua82qe77dv82slc74he",
+    "Carnival Consensus 🎪🎪🎪" => "shidovalcons1perda8fa3ce3xwg2p6zgl7a0akfy2ln56xn648",
+    "🚀 WHEN MOON 🌕 WHEN LAMBO 🔥 RESTAKE ✅" => "shidovalcons1pl5ax5thhns3ktegyc4jgsjyrgjxwrmmcp882v",
+    "SHIDO4LIFE 🥋🤺👊🏼 | ✅ REStake" => "shidovalcons1zxk4rk7a05ryukmrn6y6l0qgzuw40kv58c2wtx",
+    "Sherlock Holmes" => "shidovalcons1zwg0zjaqch52aujnh5cw4pk74y3f8qm7dc655a"
+];
 
-    if (empty($validators)) {
-        echo "Error: No validators found.\n";
+// Function to display validators' uptime, name, and missed blocks
+function display_uptime($api_url, $validators_map) {
+    // Fetch signing info for all validators (for missed blocks)
+    $signing_info = get_all_signing_info($api_url);
+
+    if (empty($signing_info)) {
+        echo "Error: No data found.\n";
         return;
     }
 
-    // Create a mapping of validator consensus addresses to missed blocks
-    $missed_blocks_map = [];
+    // Create a mapping of signing info by consensus address
+    $signing_info_map = [];
     foreach ($signing_info as $info) {
-        $address = $info['address'];
-        $missed_blocks = $info['missed_blocks_counter'];
-        $missed_blocks_map[$address] = $missed_blocks;
+        $signing_info_map[$info['address']] = $info;
     }
 
     // Display table header
     echo "<table border='1' cellpadding='5' cellspacing='0'>";
-    echo "<tr><th>Validator</th><th>Status</th><th>Jailed</th><th>Missed Blocks</th><th>Uptime (%)</th></tr>";
+    echo "<tr><th>Validator</th><th>Consensus Address</th><th>Missed Blocks</th><th>Uptime (%)</th></tr>";
 
-    // Iterate through validators and display data
-    foreach ($validators as $validator) {
-        $moniker = htmlspecialchars($validator['description']['moniker']);  // Prevent HTML injection
-        $status = ($validator['status'] === 'BOND_STATUS_BONDED') ? 'Bonded' : 'Unbonding';
-        $jailed = $validator['jailed'] ? 'Yes' : 'No';
+    // Iterate through the provided validators map (address => name)
+    foreach ($validators_map as $validator_name => $consensus_address) {
+        // Check if we have signing info for this validator's consensus address
+        if (isset($signing_info_map[$consensus_address])) {
+            $info = $signing_info_map[$consensus_address];
 
-        // Get consensus address and missed blocks
-        $consensus_pubkey = $validator['consensus_pubkey']['key'];
-        $missed_blocks = isset($missed_blocks_map[$consensus_pubkey]) ? $missed_blocks_map[$consensus_pubkey] : 0;
+            // Extract the necessary data from signing info
+            $start_height = $info['start_height'];
+            $index_offset = $info['index_offset'];
+            $missed_blocks_counter = $info['missed_blocks_counter'];
 
-        // Calculate uptime
-        $uptime_percentage = calculate_uptime($missed_blocks, $reference_blocks);
+            // Calculate uptime using the new method
+            $uptime_percentage = calculate_uptime($start_height, $index_offset, $missed_blocks_counter);
+        } else {
+            // If no match was found, set missed blocks and uptime to N/A
+            $uptime_percentage = 0;
+            $missed_blocks_counter = 'No signing info available';
+        }
 
         // Display each row
         echo "<tr>";
-        echo "<td>$moniker</td>";
-        echo "<td>$status</td>";
-        echo "<td>$jailed</td>";
-        echo "<td>$missed_blocks</td>";
+        echo "<td>$validator_name</td>";
+        echo "<td>$consensus_address</td>";
+        echo "<td>$missed_blocks_counter</td>";
         echo "<td>" . number_format($uptime_percentage, 2) . "</td>";
         echo "</tr>";
     }
@@ -83,6 +100,6 @@ function display_uptime($api_url, $reference_blocks) {
     echo "</table>";
 }
 
-// Run the script
-display_uptime($api_url, $reference_blocks);
+// Run the script with the predefined validator map
+display_uptime($api_url, $validators_map);
 ?>
