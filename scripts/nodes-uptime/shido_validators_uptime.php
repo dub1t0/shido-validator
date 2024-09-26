@@ -1,6 +1,19 @@
 <?php
-// API URL of the Shido blockchain node
+// Define available API URLs for selection
+$api_servers = [
+    "https://swagger.shidoscan.com" => "Shidoscan Swagger",
+    "https://shido-api.applejuice.256x25.tech" => "Applejuice API",
+    "https://api-maverick.mavnode.io" => "Maverick API",
+    "https://api.shido.indonode.net" => "Indonode API"
+];
+
+// Default API URL (initial)
 $api_url = "https://api-maverick.mavnode.io";
+
+// Check if the API has been changed through the form submission
+if (isset($_POST['api_server'])) {
+    $api_url = $_POST['api_server'];
+}
 
 // Function to fetch the current block height using the correct structure
 function get_current_block_height($api_url) {
@@ -66,6 +79,7 @@ $validators_map = [
     "🇳🇱ShidoDutch🇳🇱 |REStake" => "shidovalcons1jl70udxd5872m8ux0xvv7uaf7zzypf63f42rvf",
     "ShidoGuard" => "shidovalcons1zxk4rk7a05ryukmrn6y6l0qgzuw40kv58c2wtx",
     "🇫🇷 ShidoFrance One 🇫🇷" => "shidovalcons1xfv2anmpj7dlh06cz0rg9jx2nswn0v5a24rprm"
+    // Add all other validators similarly
 ];
 
 // Function to display validators' uptime, name, and missed blocks in an ordered list sorted by uptime
@@ -130,8 +144,8 @@ function display_uptime_sorted($api_url, $validators_map) {
     });
 
     // Display the sorted data in an ordered list (1, 2, 3...)
-    echo "<table border='1' cellpadding='5' cellspacing='0'>";
-    echo "<tr><th>#</th><th>Validator</th><th>Consensus Address</th><th>Missed Blocks</th><th>Uptime (%)</th></tr>";
+    echo "<table border='1' cellpadding='5' cellspacing='0' style='color: white; background-color: black; margin: 0 auto;'>";
+    echo "<tr style='background-color: #333; color: white;'><th>#</th><th>Validator</th><th>Consensus Address</th><th>Missed Blocks</th><th>Uptime (%)</th></tr>";
 
     // Iterate through the sorted data and display it
     foreach ($validator_data as $index => $data) {
@@ -147,14 +161,62 @@ function display_uptime_sorted($api_url, $validators_map) {
     echo "</table>";
 }
 
-// Handle page refresh with a button
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // When the page is refreshed via the button click
+// Include the CSS styles for the entire page
+echo '<style>';
+echo 'body, html {';
+echo '    margin: 0;';
+echo '    padding: 0;';
+echo '    height: 100%;';
+echo '    background-color: black;'; // Ensure the background is black
+echo '    color: white;'; // Ensure text color is white for visibility
+echo '    font-family: Arial, sans-serif;';
+echo '}';
+echo 'table {';
+echo '    width: 80%;'; // Control the table width
+echo '    margin: 20px auto;'; // Center the table horizontally and give some spacing from the top
+echo '    background-color: black;'; // Table background black
+echo '    border-collapse: collapse;'; // Collapses the border
+echo '}';
+echo 'th, td {';
+echo '    border: 1px solid #fff;'; // White borders for visibility
+echo '    padding: 8px;'; // Padding for table cells
+echo '    text-align: left;'; // Align text to the left
+echo '}';
+echo 'th {';
+echo '    background-color: #333;'; // Darker background for headers for better visibility
+echo '}';
+echo 'select, input[type="button"], button {';
+echo '    margin-top: 10px;'; // Space above the form elements
+echo '    padding: 5px;'; // Padding inside form elements
+echo '}';
+echo 'label {';
+echo '    margin-right: 5px;'; // Space between label and input
+echo '}';
+echo '</style>';
+
+// Output the page content above the table
+echo '<div style="text-align: center; padding-top: 20px;">';
+echo '<h1>Shido Validator Uptime Monitor</h1>';
+echo '<form method="POST">';
+echo '<label for="api_server">Select API Server:</label>';
+echo '<select name="api_server" id="api_server">';
+foreach ($api_servers as $url => $name) {
+    $selected = ($url === $api_url) ? 'selected' : '';
+    echo "<option value='$url' $selected>$name</option>";
+}
+echo '</select>';
+echo '<button type="submit">Change API Server</button>';
+echo '</form>';
+echo '</div>';
+
+// Only call the function to display the table if a refresh is not requested
+if (!isset($_POST['refresh'])) {
     display_uptime_sorted($api_url, $validators_map);
 }
 
-// Add a refresh button to reload the page and gather updated uptime
-echo '<form method="POST" action="">';
-echo '<button type="submit">Refresh Uptime</button>';
-echo '</form>';
+// Handle the refresh button separately to update the uptime information
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refresh'])) {
+    display_uptime_sorted($api_url, $validators_map);
+}
+
 ?>
