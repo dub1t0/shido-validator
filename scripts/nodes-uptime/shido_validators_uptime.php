@@ -4,7 +4,7 @@ $api_servers = [
     "https://swagger.shidoscan.com" => "Shidoscan Swagger",
     "https://shido-api.applejuice.256x25.tech" => "Applejuice API",
     "https://api-maverick.mavnode.io" => "Maverick API",
-    "https://api.shido.indonode.net" => "Indonode API"
+    "https://api.shido.indonode.net" => "Indonode API",
     "https://api.kenseishido.com" => "Kensei API"
 ];
 
