@@ -59,6 +59,48 @@ function calculate_uptime($index_offset, $missed_blocks_counter, $reference_bloc
     return min($uptime, 100);
 }
 
+// Frozen blocks data
+$frozenBlocks = [
+    ["validator" => "Shido Three", "missedBlocks" => 22090],
+    ["validator" => "Shido Two", "missedBlocks" => 21663],
+    ["validator" => "NeoNode", "missedBlocks" => 19860],
+    ["validator" => "🔥DefiMike🔥Restake🔥", "missedBlocks" => 17711],
+    ["validator" => "Shido Five", "missedBlocks" => 16879],
+    ["validator" => "Shido Australia Co. | Restake", "missedBlocks" => 13162],
+    ["validator" => "🔥 SHIDOFORGE ⚒ 🔥 REStake", "missedBlocks" => 13148],
+    ["validator" => "🚀 WHEN MOON 🌕 WHEN LAMBO 🔥 RESTAKE ✅", "missedBlocks" => 12403],
+    ["validator" => "🇫🇷 ShidoFrance One 🇫🇷", "missedBlocks" => 12257],
+    ["validator" => "Scafire Node 5% Fee REStake Fast ❤️", "missedBlocks" => 12052],
+    ["validator" => "SHIDO4LIFE 🥋🤺👊🏼 | ✅ REStake", "missedBlocks" => 11887],
+    ["validator" => "Olim 🥷 VIP Services RESTAKE", "missedBlocks" => 11309],
+    ["validator" => "🟢 Shidoverse  🔥  REStake  🚀", "missedBlocks" => 10851],
+    ["validator" => "ShidoGuard", "missedBlocks" => 8593],
+    ["validator" => "CryptoWav3z", "missedBlocks" => 8364],
+    ["validator" => "BG-SHI-VAL01🦁 | REStake", "missedBlocks" => 7960],
+    ["validator" => "Indonode | Restake", "missedBlocks" => 6563],
+    ["validator" => "Shido Seven", "missedBlocks" => 5914],
+    ["validator" => "ChainTools", "missedBlocks" => 4844],
+    ["validator" => "Blue Trust 🤝", "missedBlocks" => 4280],
+    ["validator" => "🇳🇱ShidoDutch🇳🇱 |REStake", "missedBlocks" => 3718],
+    ["validator" => "ShidoObserver || REStake", "missedBlocks" => 3713],
+    ["validator" => "🇸🇪 In Bjorn We Trust", "missedBlocks" => 3197],
+    ["validator" => "Shido Six", "missedBlocks" => 3125],
+    ["validator" => "FrankLinvesting📈 | RESTAKE☆", "missedBlocks" => 3112],
+    ["validator" => "KENSEI ⚔️", "missedBlocks" => 3041],
+    ["validator" => "Maverick | MavNode - REStake", "missedBlocks" => 1389],
+    ["validator" => "Fox Node🦊 | RESTAKE", "missedBlocks" => 743],
+    ["validator" => "Blockval | Restake", "missedBlocks" => 463],
+    ["validator" => "Superbit123 & DAOverse | REStake~", "missedBlocks" => 276],
+    ["validator" => "JquickDeFi", "missedBlocks" => 148],
+    ["validator" => "256x25 /reStake", "missedBlocks" => 145],
+    ["validator" => "MetaDefi || RESTAKE", "missedBlocks" => 86],
+    ["validator" => "Nuke Node | RESTAKE", "missedBlocks" => 0],
+    ["validator" => "xshrimp", "missedBlocks" => 0],
+    ["validator" => "MagicShidoNode 🧙‍♂️🔮🌟🪄 | ✅ REStake", "missedBlocks" => 0],
+    ["validator" => "Shido Four", "missedBlocks" => 0],
+    ["validator" => "Neev Labs", "missedBlocks" => 0]
+];
+
 // Updated map of validator names to their known consensus (signer) addresses
 $validators_map = [
     "Superbit123 & DAOverse | REStake~" => "shidovalcons194tpuw3ncmtag4y0k2548hn3at37u3nkq8qljj",
@@ -80,11 +122,20 @@ $validators_map = [
     "🇳🇱ShidoDutch🇳🇱 |REStake" => "shidovalcons1jl70udxd5872m8ux0xvv7uaf7zzypf63f42rvf",
     "ShidoGuard" => "shidovalcons1zxk4rk7a05ryukmrn6y6l0qgzuw40kv58c2wtx",
     "🇫🇷 ShidoFrance One 🇫🇷" => "shidovalcons1xfv2anmpj7dlh06cz0rg9jx2nswn0v5a24rprm"
-    // Add all other validators similarly
 ];
 
+// Function to get frozen blocks for a given validator name
+function get_frozen_blocks($validator_name, $frozenBlocks) {
+    foreach ($frozenBlocks as $frozen) {
+        if ($frozen['validator'] === $validator_name) {
+            return $frozen['missedBlocks'];
+        }
+    }
+    return 0; // Return 0 if no frozen blocks found
+}
+
 // Function to display validators' uptime, name, and missed blocks in an ordered list sorted by uptime
-function display_uptime_sorted($api_url, $validators_map) {
+function display_uptime_sorted($api_url, $validators_map, $frozenBlocks) {
     // Fetch current block height
     $current_block_height = get_current_block_height($api_url);
     if ($current_block_height === null) {
@@ -122,19 +173,25 @@ function display_uptime_sorted($api_url, $validators_map) {
             $index_offset = $info['index_offset'];
             $missed_blocks_counter = $info['missed_blocks_counter'];
 
+            // Get frozen blocks for this validator
+            $frozen_blocks = get_frozen_blocks($validator_name, $frozenBlocks);
+
+            // Subtract frozen blocks from the missed blocks counter
+            $adjusted_missed_blocks = max(0, $missed_blocks_counter - $frozen_blocks);
+
             // Calculate uptime using the reference block height (current block - 100,000)
-            $uptime_percentage = calculate_uptime($index_offset, $missed_blocks_counter, $reference_block_height, $current_block_height);
+            $uptime_percentage = calculate_uptime($index_offset, $adjusted_missed_blocks, $reference_block_height, $current_block_height);
         } else {
             // If no match was found, set missed blocks and uptime to N/A
             $uptime_percentage = 0;
-            $missed_blocks_counter = 'No signing info available';
+            $adjusted_missed_blocks = 'No signing info available';
         }
 
         // Add the data to the array
         $validator_data[] = [
             'name' => $validator_name,
             'consensus_address' => $consensus_address,
-            'missed_blocks' => $missed_blocks_counter,
+            'missed_blocks' => $adjusted_missed_blocks,
             'uptime' => $uptime_percentage
         ];
     }
@@ -212,12 +269,12 @@ echo '</div>';
 
 // Only call the function to display the table if a refresh is not requested
 if (!isset($_POST['refresh'])) {
-    display_uptime_sorted($api_url, $validators_map);
+    display_uptime_sorted($api_url, $validators_map, $frozenBlocks);
 }
 
 // Handle the refresh button separately to update the uptime information
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['refresh'])) {
-    display_uptime_sorted($api_url, $validators_map);
+    display_uptime_sorted($api_url, $validators_map, $frozenBlocks);
 }
 
 ?>
