@@ -258,6 +258,7 @@ echo '</style>';
 
 // Output the page content above the table
 echo '<div style="text-align: center; padding-top: 20px;">';
+echo '<img src="images/shido_logo.png" alt="Shido Logo" style="max-width:200px;">';
 echo '<h1>Shido Validator Uptime Monitor</h1>';
 echo '<form method="POST">';
 echo '<label for="api_server">Select API Server:</label>';
