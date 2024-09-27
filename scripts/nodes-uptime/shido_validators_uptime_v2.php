@@ -203,14 +203,14 @@ function display_uptime_sorted($api_url, $validators_map, $frozenBlocks) {
 
     // Display the sorted data in an ordered list (1, 2, 3...)
     echo "<table border='1' cellpadding='5' cellspacing='0' style='color: white; background-color: black; margin: 0 auto;'>";
-    echo "<tr style='background-color: #333; color: white;'><th>#</th><th>Validator</th><th>Consensus Address</th><th>Missed Blocks</th><th>Uptime (%)</th></tr>";
+    echo "<tr style='background-color: #333; color: white;'><th>#</th><th>Validator</th><th>Missed Blocks</th><th>Uptime (%)</th></tr>";
 
     // Iterate through the sorted data and display it
     foreach ($validator_data as $index => $data) {
         echo "<tr>";
         echo "<td>" . ($index + 1) . "</td>";  // Display the rank (1, 2, 3...)
         echo "<td>" . $data['name'] . "</td>";
-        echo "<td>" . $data['consensus_address'] . "</td>";
+        
         echo "<td>" . $data['missed_blocks'] . "</td>";
         echo "<td>" . number_format($data['uptime'], 2) . "</td>";
         echo "</tr>";
