@@ -227,8 +227,12 @@ echo '    padding: 0;';
 echo '    height: 100%;';
 echo '    background-color: black;'; // Ensure the background is black
 echo '    color: white;'; // Ensure text color is white for visibility
-echo '    font-family: Arial, sans-serif;';
+echo '    font-family: "Open Sans", sans-serif;';
 echo '}';
+echo 'h1, p, a, label, span, table, tr, td {';
+echo '    font-family: "Open Sans", sans-serif;';
+echo '}';
+
 echo 'table {';
 echo '    width: 80%;'; // Control the table width
 echo '    margin: 20px auto;'; // Center the table horizontally and give some spacing from the top
