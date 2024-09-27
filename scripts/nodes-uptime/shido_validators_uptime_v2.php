@@ -202,8 +202,10 @@ function display_uptime_sorted($api_url, $validators_map, $frozenBlocks) {
     });
 
     // Display the sorted data in an ordered list (1, 2, 3...)
-    echo "<table border='1' cellpadding='5' cellspacing='0' style='color: white; background-color: black; margin: 0 auto;'>";
-    echo "<tr style='background-color: #333; color: white;'><th>#</th><th>Validator</th><th>Missed Blocks</th><th>Uptime (%)</th></tr>";
+    echo '<div class="container text-center main-table">';
+    echo '<div class="table-responsive rounded">';
+    echo '<table class="table table-bordered table-hover table-dark">';
+    echo "<tr><th>#</th><th>Validator</th><th>Missed Blocks</th><th>Uptime (%)</th></tr>";
 
     // Iterate through the sorted data and display it
     foreach ($validator_data as $index => $data) {
@@ -217,66 +219,82 @@ function display_uptime_sorted($api_url, $validators_map, $frozenBlocks) {
     }
 
     echo "</table>";
+    echo '</div>';
+    echo '</div>';
 }
 
 // Include the CSS styles for the entire page
 echo '<style>';
-echo 'body, html {';
-echo '    margin: 0;';
-echo '    padding: 0;';
-echo '    height: 100%;';
-echo '    background-color: black;'; // Ensure the background is black
-echo '    color: white;'; // Ensure text color is white for visibility
+echo '* {';
 echo '    font-family: "Open Sans", sans-serif;';
 echo '}';
-echo 'h1, p, a, label, span, table, tr, td {';
-echo '    font-family: "Open Sans", sans-serif;';
-echo '}';
-
-echo 'table {';
-echo '    width: 80%;'; // Control the table width
-echo '    margin: 20px auto;'; // Center the table horizontally and give some spacing from the top
-echo '    background-color: black;'; // Table background black
-echo '    border-collapse: collapse;'; // Collapses the border
-echo '}';
-echo 'th, td {';
-echo '    border: 1px solid #fff;'; // White borders for visibility
-echo '    padding: 8px;'; // Padding for table cells
-echo '    text-align: left;'; // Align text to the left
-echo '}';
-echo 'th {';
-echo '    background-color: #333;'; // Darker background for headers for better visibility
-echo '}';
-echo 'select, input[type="button"], button {';
-echo '    margin-top: 10px;'; // Space above the form elements
-echo '    padding: 5px;'; // Padding inside form elements
-echo '}';
-echo 'label {';
-echo '    margin-right: 5px;'; // Space between label and input
-echo '}';
+echo '.logo {';
+echo 'margin-bottom: 20px';
 echo '</style>';
 
 // Output the page content above the table
-echo '<div style="text-align: center; padding-top: 20px;">';
-echo '<img src="images/shido_logo.png" alt="Shido Logo" style="max-width:200px;">';
+echo '<!doctype html>';
+echo '<html lang="en">';
+echo '<head>';
+echo '<meta charset="utf-8">';
+echo '<meta name="viewport" content="width=device-width, initial-scale=1">';
+echo '<title>Shido Validator Uptime Monitor</title>';
+echo '<link rel="stylesheet" href="./css/bootstrap.min.css">';
+echo '<style>';
+echo 'body {';
+echo 'background-color: black;';
+echo 'color: white;';
+echo '}';
+echo '        .custom-select, .custom-button {';
+echo '            background-color: #242424;  /* Dark background */';
+echo '            color: #ffffff;             /* White text */';
+echo '            border: 1px solid #444;     /* Slightly lighter border */';
+echo '            border-radius: 0.25rem;     /* Consistent rounding */';
+echo '        }';
+echo '        .custom-select:hover, .custom-button:hover {';
+echo '            background-color: #333333;  /* Darker background on hover */';
+echo '        }';
+echo '        .custom-button {';
+echo '            padding: 0.375rem 0.75rem;  /* Bootstrap\'s default padding */';
+echo '        }';
+echo '        /* Custom focus styles for accessibility */';
+echo '        .custom-select:focus, .custom-button:focus {';
+echo '            outline: none;';
+echo '            box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);';
+echo '        }';
+echo '</style>';
+echo '</head>';
+echo '<body>';
+echo '<div class="container text-center">';
+echo '<div class="row justify-content-center">';
+echo '<div class="logo" style="max-width:200px">';
+echo '<img src="images/shido_logo.png" alt="Shido Logo" class="img-fluid mx-auto d-block">';
+echo '</div>';
+echo '</div>';
+echo '<div class="row">';
 echo '<h1>Shido Validator Uptime Monitor</h1>';
+echo '</div>';
+echo '<div class="row">';
 echo '<form method="POST">';
-echo '<label for="api_server">Select API Server:</label>';
-echo '<select name="api_server" id="api_server">';
+echo '<div class="input-group mt-5 mb-5 justify-content-center">';
+echo '<div class="col-auto">';
+echo '<select name="api_server" id="api_server" class="form-select custom-select col-xs-2">';
 foreach ($api_servers as $url => $name) {
     $selected = ($url === $api_url) ? 'selected' : '';
     echo "<option value='$url' $selected>$name</option>";
 }
 echo '</select>';
-echo '<button type="submit">Change API Server</button>';
-echo '<button onclick="location.reload();">Refresh Data</button>';
+echo '</div>';
+echo '<button type="submit" class="btn btn-secondary custom-button">Change API Server</button>';
+echo '<button onclick="location.reload();" class="btn btn-secondary custom-button ms-2">Refresh Data</button>';
+echo '</div>';
 echo '</form>';
-
-
-
 echo '</div>';
 
-
+echo '</div>';
+echo '<script src="./js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>';
+echo '</body>';
+echo '</html>';
 
 // Only call the function to display the table if a refresh is not requested
 if (!isset($_POST['refresh'])) {
