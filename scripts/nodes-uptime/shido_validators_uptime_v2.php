@@ -264,8 +264,14 @@ foreach ($api_servers as $url => $name) {
 }
 echo '</select>';
 echo '<button type="submit">Change API Server</button>';
+echo '<button onclick="location.reload();">Refresh Data</button>';
 echo '</form>';
+
+
+
 echo '</div>';
+
+
 
 // Only call the function to display the table if a refresh is not requested
 if (!isset($_POST['refresh'])) {
