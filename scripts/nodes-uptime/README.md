@@ -50,5 +50,5 @@ Here's a brief overview of the main functional blocks in the source code:
 
 ## Contributors
 
-- This project is currently maintained by [Your Name/Your Organization].
+- This project is currently maintained by ShidoFrance.
 - Contributions, bug reports, and enhancements are welcome.
