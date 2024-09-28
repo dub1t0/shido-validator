@@ -169,6 +169,7 @@ root soft     nofile         65535
 root hard     nofile         65535
 
 #edit /etc/pam.d/common-session
+nano /etc/pam.d/common-session
 # Append
 session required pam_limits.so
 
