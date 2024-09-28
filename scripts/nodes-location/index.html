@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nodes Locations</title>
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: black;
+            color: white;
+        }
+        .custom-select, .custom-button {
+            background-color: #242424;  
+            color: #ffffff;
+            border: 1px solid #444;
+            border-radius: 0.25rem;
+        }
+        .custom-select:hover, .custom-button:hover {
+            background-color: #333333;
+        }
+        .custom-button {
+            padding: 0.375rem 0.75rem;
+        }
+        .custom-select:focus, .custom-button:focus {
+            outline: none;
+            box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+        }
+    </style>
+    <script>
+        const apiUrls = [
+            { name: "Shido 1", url: "http://18.199.28.209:26657/net_info" },
+            { name: "Maverick", url: "https://rpc-maverick.mavnode.io/net_info" },
+            { name: "Kenseishido", url: "https://rpc.kenseishido.com/net_info" },
+            { name: "Tendermint", url: "https://tendermint.shidoscan.com/net_info" },
+            { name: "Shidochain", url: "https://shidochain_mainnet_rpc.chain.whenmoonwhenlambo.money/net_info" }
+        ];
+        let ipData = []; // Global array to store IP data
+    
+        document.addEventListener('DOMContentLoaded', loadIpAddresses);
+    
+        function loadIpAddresses() {
+            const selectedApiUrl = document.getElementById('apiSelect').value;
+            fetch(`proxy.php?apiUrl=${encodeURIComponent(selectedApiUrl)}`)
+                .then(response => response.json())
+                .then(data => {
+                    ipData = []; // Reset IP data
+                    let fetchPromises = [];
+                    data.result.peers.forEach(peer => {
+                        const nodeId = peer.node_info.id;
+                        const ip = peer.remote_ip;
+                        fetchPromises.push(fetchGeoLocation(ip, nodeId));
+                    });
+                    Promise.all(fetchPromises).then(() => {
+                        displaySortedTable();
+                    });
+                })
+                .catch(error => console.error('Fetch error:', error));
+        }
+    
+        function fetchGeoLocation(ip, nodeId) {
+            const token = 'INSERT-YOUR-IPINFO-IO-TOKEN-HERE'; // Use your actual API token here
+            return fetch(`https://ipinfo.io/${ip}/json?token=${token}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok ' + response.statusText);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    ipData.push({
+                        nodeId: nodeId,
+                        ip: ip,
+                        location: `${data.city}, ${data.region}, ${data.country}`
+                    });
+                })
+                .catch(error => {
+                    console.error('Error fetching location:', error);
+                    ipData.push({
+                        nodeId: nodeId,
+                        ip: ip,
+                        location: 'Location fetch failed'
+                    });
+                });
+        }
+    
+        function displaySortedTable() {
+            ipData.sort((a, b) => a.location.localeCompare(b.location));
+            const tableBody = document.getElementById('ipTableBody');
+            tableBody.innerHTML = ''; // Clear the table
+            ipData.forEach(item => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${item.nodeId}@${item.ip}</td><td>${item.location}</td>`;
+                tableBody.appendChild(row);
+            });
+        }
+    </script>
+    
+</head>
+<body>
+    <div class="container text-center">
+        <div class="row justify-content-center">
+            <div class="logo" style="max-width:200px">
+                <img src="images/shido_logo.png" alt="Shido Logo" class="img-fluid mx-auto d-block">
+            </div>
+        </div>
+        <h1 class="mt-5 mb-5">Nodes Locations</h1>
+        <div class="input-group mb-3">
+            <span class="input-group-text custom-button" id="basic-addon1">SELECT API URL:</span>
+            <select id="apiSelect" onchange="loadIpAddresses()" class="form-select custom-select col-xs-2">
+                <option selected value="http://18.199.28.209:26657/net_info">Shido Core</option>
+                <option value="https://rpc-maverick.mavnode.io/net_info">Maverick</option>
+                <option value="https://rpc.kenseishido.com/net_info">Kenseishido</option>
+                <option value="https://tendermint.shidoscan.com/net_info">Tendermint</option>
+                <option value="https://shidochain_mainnet_rpc.chain.whenmoonwhenlambo.money/net_info">Shidochain</option>
+            </select>
+            <button onclick="loadIpAddresses()" class="btn btn-secondary custom-button">Refresh Data</button>
+        </div>
+        <div class="table-responsive rounded">
+            <table class="table table-bordered table-hover table-dark">
+                <thead>
+                    <tr>
+                        <th>NODE-ID@IP</th>
+                        <th>Location</th>
+                    </tr>
+                </thead>
+                <tbody id="ipTableBody">
+                    <!-- Data will be inserted here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <script src="./js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>
