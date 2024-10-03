@@ -28,12 +28,18 @@ The script includes a list of URLs from which to fetch network information about
     ```
 
 2. **Reference IP List**  
-A predefined list of existing IP addresses relevant to the Shido network for comparison:
+A predefined list of existing IP addresses relevant to the Shido network for comparison kept into ``previousIPs.json``:
     ```powershell
-    $existingIPList = @(
-        "3.98.239.17", "3.110.11.92", "38.242.137.118",
-        ...  # (additional IPs relevant to Shido)
-    )
+    "109.199.104.27",
+    "109.199.127.133",
+    "116.202.218.189",
+    "135.181.225.155",
+    "142.160.67.89",
+    "149.102.132.87",
+    "149.202.108.206",
+    "15.156.158.51",
+    "15.157.50.94",
+    "154.12.230.61",
     ```
 
 3. **Functions**  
@@ -48,7 +54,7 @@ A predefined list of existing IP addresses relevant to the Shido network for com
 5. **Output**  
 The results, including gathered IP addresses, duplicates, unique entries, and port check results, are compiled and saved to a text file:
     ```plaintext
-    Desktop\IPGatheringResults.txt
+    IPGatheringResults.txt
     ```
 
 ## Usage
