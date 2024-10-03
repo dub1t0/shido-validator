@@ -7,74 +7,22 @@ $urls = @(
     "http://15.156.158.51:26657/net_info?"
 )
 
-# Define the reference list of existing IPs
-$existingIPList = @(
-    "3.98.239.17",
-    "3.110.11.92",
-    "38.242.137.118",
-    "82.9.116.86",
-    "37.27.129.189",
-    "45.76.119.193",
-    "35.182.147.124",
-    "85.190.246.81",
-    "86.38.205.246",
-    "167.235.2.101",
-    "116.202.218.189",
-    "18.193.227.128",
-    "81.17.103.4",
-    "38.242.228.143",
-    "37.27.117.86",
-    "3.76.57.158",
-    "18.192.75.125",
-    "45.10.163.234",
-    "158.220.94.56",
-    "185.230.138.22",
-    "15.157.235.96",
-    "38.242.144.176",
-    "78.46.174.72",
-    "97.91.90.171",
-    "62.84.180.194",
-    "135.181.225.155",
-    "167.235.12.38",
-    "18.182.78.42",
-    "37.187.93.177",
-    "207.244.253.62",
-    "3.108.81.233",
-    "3.7.240.62",
-    "167.235.102.45",
-    "18.178.17.86",
-    "52.194.8.37",
-    "15.157.50.94",
-    "188.34.136.203",
-    "142.160.67.89",
-    "194.163.160.123",
-    "52.193.158.166",
-    "157.173.124.127",
-    "195.179.229.249",
-    "149.102.132.87",
-    "195.26.242.233",
-    "154.12.230.61",
-    "18.199.28.209",
-    "85.25.46.218",
-    "169.1.35.42",
-    "3.79.211.195",
-    "194.147.58.103",
-    "38.242.245.32",
-    "18.184.249.140",
-    "78.46.88.16",
-    "86.10.87.228",
-    "65.109.115.195",
-    "149.102.132.87",
-    "3.98.102.80"
-)
+# Path to store/load the IPs from previous runs (same folder as the script)
+$ipFilePath = Join-Path -Path $PSScriptRoot -ChildPath "previousIPs.json"
+
+# Load the IPs from the last run, if the file exists in the same folder as the script
+$previousIPs = @()
+if (Test-Path $ipFilePath) {
+    $previousIPs = Get-Content -Path $ipFilePath | ConvertFrom-Json
+    Write-Host "`nLoaded previous IPs from $ipFilePath"
+} else {
+    Write-Host "`nNo previous IPs file found. This is the first run."
+}
 
 # Initialize an empty array to store all IP addresses gathered from URLs
 $allIPAddresses = @()
 
-# Get the current user's desktop path
-$desktopPath = [System.IO.Path]::Combine([System.Environment]::GetFolderPath("Desktop"), "IPGatheringResults.txt")
-
-# Function to check if a port is open using local TCP connection
+# Function to check if a port is open using local TCP connection and measure time
 function Test-PortLocally {
     param (
         [string]$ip,
@@ -82,13 +30,18 @@ function Test-PortLocally {
     )
 
     try {
-        # Attempt to create a TCP client connection
-        $tcpClient = New-Object System.Net.Sockets.TcpClient
-        $tcpClient.Connect($ip, $port)
-        $tcpClient.Close()
-        return "${ip}: Port ${port} is OPEN"
+        # Measure the time it takes to check the port
+        $executionTime = Measure-Command {
+            # Attempt to create a TCP client connection
+            $tcpClient = New-Object System.Net.Sockets.TcpClient
+            $tcpClient.Connect($ip, $port)
+            $tcpClient.Close()
+        }
+        
+        # Return the result along with the time taken
+        return "${ip}: Port ${port} is OPEN (Checked in $([math]::Round($executionTime.TotalSeconds, 2)) seconds)"
     } catch {
-        return "${ip}: Port ${port} is CLOSED or UNREACHABLE"
+        return "${ip}: Port ${port} is CLOSED or UNREACHABLE (Checked in $([math]::Round($executionTime.TotalSeconds, 2)) seconds)"
     }
 }
 
@@ -152,12 +105,12 @@ $uniqueIPAddresses = $allIPAddresses | Sort-Object -Unique
 Write-Host "`nUnique IP addresses:" -ForegroundColor Cyan
 $uniqueIPAddresses
 
-# Compare gathered IPs against the existing reference list
+# Compare gathered IPs against the previously stored list (from last run)
 $newIPs = @()
 $existingIPs = @()
 
 foreach ($ip in $uniqueIPAddresses) {
-    if ($existingIPList -contains $ip) {
+    if ($previousIPs -contains $ip) {
         $existingIPs += $ip
     } else {
         $newIPs += $ip
@@ -165,26 +118,33 @@ foreach ($ip in $uniqueIPAddresses) {
 }
 
 # Output the comparison results
-Write-Host "`nIPs already in the reference list:" -ForegroundColor Magenta
+Write-Host "`nIPs already in the previous list:" -ForegroundColor Magenta
 $existingIPs
 
-Write-Host "`nNew IPs (not in the reference list):" -ForegroundColor Green
+Write-Host "`nNew IPs (not in the previous list):" -ForegroundColor Green
 $newIPs
 
 # Initialize an array to store the port check results
 $portCheckResults = @()
 
-# Check if port 26656 is open for each unique IP address
+# Total number of IPs to check
+$totalIPs = $uniqueIPAddresses.Count
+$ipIndex = 0
+
+# Check if port 26657 is open for each unique IP address
 foreach ($ip in $uniqueIPAddresses) {
-    if ($newIPs -contains $ip) {
-        # Check port only for new IPs
-        $result = Test-PortLocally -ip $ip -port 26656
-        $portCheckResults += $result
-    }
+    # Update the progress bar
+    $ipIndex++
+    $percentComplete = [math]::Round(($ipIndex / $totalIPs) * 100)
+    Write-Progress -Activity "Checking Port 26657" -Status "Processing IP $ipIndex of $totalIPs" -PercentComplete $percentComplete
+
+    # Check port for all IPs
+    $result = Test-PortLocally -ip $ip -port 26657
+    $portCheckResults += $result
 }
 
 # Output the port check results
-Write-Host "`nPort 26656 check results for each new IP address:" -ForegroundColor Blue
+Write-Host "`nPort 26657 check results for each unique IP address:" -ForegroundColor Blue
 foreach ($result in $portCheckResults) {
     Write-Host $result
 }
@@ -200,23 +160,28 @@ $($duplicateIPs -join "`n")
 `nUnique IP addresses (after removing duplicates):
 $($uniqueIPAddresses -join "`n")
 
-`nIPs already in the reference list:
+`nIPs already in the previous list:
 $($existingIPs -join "`n")
 
-`nNew IPs (not in the reference list):
+`nNew IPs (not in the previous list):
 $($newIPs -join "`n")
 
-`nPort 26656 check results for each new IP address:
+`nPort 26657 check results for each unique IP address:
 $($portCheckResults -join "`n")
 "@
 
-# Export results to the desktop
+# Export results to the script's directory
+$outputFilePath = Join-Path -Path $PSScriptRoot -ChildPath "IPGatheringResults.txt"
 if ($portCheckResults.Count -gt 0) {
-    # Export results to the desktop
-    $output | Out-File -FilePath $desktopPath -Encoding UTF8
+    # Export results to the script's directory
+    $output | Out-File -FilePath $outputFilePath -Encoding UTF8
 
     # Confirm that the file has been saved
-    Write-Host "`nResults exported to $desktopPath"
+    Write-Host "`nResults exported to $outputFilePath"
 } else {
     Write-Warning "No port check results obtained."
 }
+
+# Save the current unique IP addresses to the script's directory for future runs
+$uniqueIPAddresses | ConvertTo-Json | Out-File -FilePath $ipFilePath -Encoding UTF8
+Write-Host "`nUnique IP addresses saved to $ipFilePath"
