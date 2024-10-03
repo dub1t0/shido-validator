@@ -19,31 +19,8 @@ if (Test-Path $ipFilePath) {
     Write-Host "`nNo previous IPs file found. This is the first run."
 }
 
-# Initialize an empty array to store all IP addresses gathered from URLs
-$allIPAddresses = @()
-
-# Function to check if a port is open using local TCP connection and measure time
-function Test-PortLocally {
-    param (
-        [string]$ip,
-        [int]$port
-    )
-
-    try {
-        # Measure the time it takes to check the port
-        $executionTime = Measure-Command {
-            # Attempt to create a TCP client connection
-            $tcpClient = New-Object System.Net.Sockets.TcpClient
-            $tcpClient.Connect($ip, $port)
-            $tcpClient.Close()
-        }
-        
-        # Return the result along with the time taken
-        return "${ip}: Port ${port} is OPEN (Checked in $([math]::Round($executionTime.TotalSeconds, 2)) seconds)"
-    } catch {
-        return "${ip}: Port ${port} is CLOSED or UNREACHABLE (Checked in $([math]::Round($executionTime.TotalSeconds, 2)) seconds)"
-    }
-}
+# Initialize an empty array to store all IP addresses and monikers gathered from URLs
+$allNodesInfo = @()
 
 # Function to validate IP addresses
 function Is-ValidIPAddress {
@@ -64,124 +41,90 @@ function Is-ValidIPAddress {
                  $ip.StartsWith("192.168."))
 }
 
-# Loop through each URL to gather IP addresses
+# Loop through each URL to gather IP addresses and monikers
 foreach ($url in $urls) {
     try {
         # Fetch the webpage content
         $response = Invoke-WebRequest -Uri $url -ErrorAction Stop
 
-        # Extract all IP addresses using regex pattern
-        $ipPattern = "\b(?:\d{1,3}\.){3}\d{1,3}\b"
-        $ipAddresses = Select-String -InputObject $response.Content -Pattern $ipPattern -AllMatches | ForEach-Object { $_.Matches } | ForEach-Object { $_.Value }
+        # Parse the JSON content
+        $jsonData = $response.Content | ConvertFrom-Json
 
-        # Filter out invalid IP addresses
-        $validIPs = $ipAddresses | Where-Object { Is-ValidIPAddress -ip $_ }
-        # Add the found valid IPs to the global array
-        $allIPAddresses += $validIPs
+        # Loop through each peer node information
+        foreach ($peer in $jsonData.result.peers) {
+            $ip = $peer.remote_ip
+            $moniker = $peer.node_info.moniker
+            
+            # Validate and add to the global array if it's a valid IP
+            if (Is-ValidIPAddress -ip $ip) {
+                $allNodesInfo += [PSCustomObject]@{
+                    IP = $ip
+                    Moniker = $moniker
+                }
+            }
+        }
     } catch {
         Write-Warning "Failed to fetch data from $url"
     }
 }
 
-# Output the complete list of gathered IP addresses (with possible duplicates)
-Write-Host "All gathered IP addresses (including duplicates):" -ForegroundColor Yellow
-$allIPAddresses
+# Output the complete list of gathered IP addresses and monikers
+Write-Host "All gathered IP addresses and monikers:" -ForegroundColor Yellow
+$allNodesInfo
 
-# Find duplicate IP addresses
-$duplicateIPs = $allIPAddresses | Group-Object | Where-Object { $_.Count -gt 1 } | ForEach-Object { $_.Name }
+# Remove duplicates to get unique IP and moniker pairs
+$uniqueNodesInfo = $allNodesInfo | Sort-Object -Property IP -Unique
 
-# Output the list of duplicate IP addresses, if any
-if ($duplicateIPs.Count -gt 0) {
-    Write-Host "`nDuplicate IP addresses found:" -ForegroundColor Red
-    $duplicateIPs
-} else {
-    Write-Host "`nNo duplicate IP addresses found." -ForegroundColor Green
-}
-
-# Remove duplicates to get the unique IP addresses
-$uniqueIPAddresses = $allIPAddresses | Sort-Object -Unique
-
-# Output the unique list of IP addresses
-Write-Host "`nUnique IP addresses:" -ForegroundColor Cyan
-$uniqueIPAddresses
+# Output the unique list of IP addresses and monikers
+Write-Host "`nUnique IP addresses and monikers:" -ForegroundColor Cyan
+$uniqueNodesInfo
 
 # Compare gathered IPs against the previously stored list (from last run)
 $newIPs = @()
 $existingIPs = @()
 
-foreach ($ip in $uniqueIPAddresses) {
-    if ($previousIPs -contains $ip) {
-        $existingIPs += $ip
+foreach ($node in $uniqueNodesInfo) {
+    if ($previousIPs -contains $node.IP) {
+        $existingIPs += $node
     } else {
-        $newIPs += $ip
+        $newIPs += $node
     }
 }
 
 # Output the comparison results
-Write-Host "`nIPs already in the previous list:" -ForegroundColor Magenta
+Write-Host "`nNodes already in the previous list:" -ForegroundColor Magenta
 $existingIPs
 
-Write-Host "`nNew IPs (not in the previous list):" -ForegroundColor Green
+Write-Host "`nNew Nodes (not in the previous list):" -ForegroundColor Green
 $newIPs
-
-# Initialize an array to store the port check results
-$portCheckResults = @()
-
-# Total number of IPs to check
-$totalIPs = $uniqueIPAddresses.Count
-$ipIndex = 0
-
-# Check if port 26657 is open for each unique IP address
-foreach ($ip in $uniqueIPAddresses) {
-    # Update the progress bar
-    $ipIndex++
-    $percentComplete = [math]::Round(($ipIndex / $totalIPs) * 100)
-    Write-Progress -Activity "Checking Port 26657" -Status "Processing IP $ipIndex of $totalIPs" -PercentComplete $percentComplete
-
-    # Check port for all IPs
-    $result = Test-PortLocally -ip $ip -port 26657
-    $portCheckResults += $result
-}
-
-# Output the port check results
-Write-Host "`nPort 26657 check results for each unique IP address:" -ForegroundColor Blue
-foreach ($result in $portCheckResults) {
-    Write-Host $result
-}
 
 # Create output text for the report
 $output = @"
-All gathered IP addresses (including duplicates):
-$($allIPAddresses -join "`n")
+All gathered IP addresses and monikers:
+$($allNodesInfo | Out-String)
 
-`nDuplicate IP addresses found:
-$($duplicateIPs -join "`n")
+`nUnique IP addresses and monikers (after removing duplicates):
+$($uniqueNodesInfo | Out-String)
 
-`nUnique IP addresses (after removing duplicates):
-$($uniqueIPAddresses -join "`n")
+`nNodes already in the previous list:
+$($existingIPs | Out-String)
 
-`nIPs already in the previous list:
-$($existingIPs -join "`n")
-
-`nNew IPs (not in the previous list):
-$($newIPs -join "`n")
-
-`nPort 26657 check results for each unique IP address:
-$($portCheckResults -join "`n")
+`nNew Nodes (not in the previous list):
+$($newIPs | Out-String)
 "@
 
 # Export results to the script's directory
 $outputFilePath = Join-Path -Path $PSScriptRoot -ChildPath "IPGatheringResults.txt"
-if ($portCheckResults.Count -gt 0) {
+if ($uniqueNodesInfo.Count -gt 0) {
     # Export results to the script's directory
     $output | Out-File -FilePath $outputFilePath -Encoding UTF8
 
     # Confirm that the file has been saved
     Write-Host "`nResults exported to $outputFilePath"
 } else {
-    Write-Warning "No port check results obtained."
+    Write-Warning "No IP gathering results obtained."
 }
 
 # Save the current unique IP addresses to the script's directory for future runs
-$uniqueIPAddresses | ConvertTo-Json | Out-File -FilePath $ipFilePath -Encoding UTF8
-Write-Host "`nUnique IP addresses saved to $ipFilePath"
+$uniqueNodesInfo | ConvertTo-Json | Out-File -FilePath $ipFilePath -Encoding UTF8
+Write-Host "`nUnique IP addresses and monikers saved to $ipFilePath"
