@@ -10,7 +10,7 @@ This PowerShell script is designed to retrieve and analyze network information f
 - **IP Validation**: Filters out non-routable and invalid IP addresses to ensure the accuracy of gathered data.
 - **Duplicate Identification**: Detects and lists duplicate IP addresses from the gathered information.
 - **Comparison with Existing IPs**: Checks newly gathered IPs against a reference list to identify new nodes in the network.
-- **Port Availability Check**: Tests the availability of port 26656 on newly identified IP addresses to ensure they are reachable.
+- **Port Availability Check**: Tests the availability of port 26657 on all IP addresses to ensure they are reachable.
 - **Export Report**: Compiles results and saves them to a text file on the user's desktop for review.
 
 ## Components
